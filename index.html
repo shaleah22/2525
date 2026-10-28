@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Squaring Fives Drill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&family=Caveat:wght@600;700&family=Figtree:wght@600;700&display=swap">
+<style>
+/* Layout: one graph-paper board filling the screen, a single Next button underneath */
+:root {
+  --paper: #EEF2F5;
+  --grid: #DCE4EA;
+  --ink: #18212B;
+  --muted: #5B6875;
+  --marker: #D21F3C;
+  --pencil: #2462C9;
+  --surface: #FFFFFF;
+  --line: #C9D3DC;
+  --f-num: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --f-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --f-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171D; --grid: #1D252E; --ink: #E7EDF2; --muted: #93A0AD;
+    --marker: #FF5C72; --pencil: #7DADFF; --surface: #1A2129; --line: #2C3742;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171D; --grid: #1D252E; --ink: #E7EDF2; --muted: #93A0AD;
+  --marker: #FF5C72; --pencil: #7DADFF; --surface: #1A2129; --line: #2C3742;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  font-size: 16px;
+}
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  height: 100%;
+  box-sizing: border-box;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.board {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+.work {
+  font-family: var(--f-num);
+  font-weight: 700;
+  font-size: clamp(40px, min(17vw, 17vh), 170px);
+  line-height: 1.05;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.15em;
+  padding-top: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+.op { grid-column: 1; text-align: right; color: var(--muted); font-weight: 500; }
+.digits { grid-column: 2; text-align: right; min-width: 4ch; white-space: nowrap; letter-spacing: 0.24em; }
+.bar { grid-column: 1 / -1; height: 0.06em; background: var(--ink); margin: 0.08em 0 0.12em; border-radius: 2px; }
+
+.tens { position: relative; display: inline-block; }
+.circle {
+  position: absolute;
+  left: -0.15em; top: -0.12em;
+  width: 0.86em; height: calc(100% + 0.24em);
+  overflow: visible;
+  pointer-events: none;
+}
+.circle path {
+  fill: none;
+  stroke: var(--marker);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+}
+.circle.on path { stroke-dashoffset: 0; transition: stroke-dashoffset 520ms ease-out; }
+
+.note {
+  position: absolute;
+  bottom: calc(100% + 0.06em);
+  left: 0.28em;
+  transform: translateX(-50%);
+  letter-spacing: 0;
+  font-family: var(--f-hand);
+  font-weight: 700;
+  font-size: 0.5em;
+  line-height: 1;
+  color: var(--pencil);
+  white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: 0.18em;
+}
+.note .res { color: var(--marker); }
+
+.fade { opacity: 0; transform: translateY(0.12em); transition: opacity 260ms ease, transform 260ms ease; }
+.fade.on { opacity: 1; transform: none; }
+
+.ans-front { color: var(--pencil); }
+.ans-back { color: var(--marker); }
+
+#next {
+  justify-self: center;
+  width: min(100%, 320px);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.15rem;
+  border-radius: 12px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+  padding: 14px 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#next:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .circle.on path { transition: none; }
+  .fade { transition: none; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <section class="board" aria-live="polite">
+    <div class="work">
+      <span class="op"></span>
+      <span class="digits"><span class="tens"><span id="tensDigit">2</span><svg class="circle" id="circle" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M58 6 C 88 8, 98 40, 94 62 C 90 86, 66 97, 44 95 C 18 93, 4 72, 6 48 C 8 22, 28 4, 60 4 C 70 4, 76 8, 80 12"/></svg><span class="note"><span class="fade" id="nA">2</span><span class="fade" id="nX">×</span><span class="fade" id="nB">3</span><span class="fade res" id="nR">= 6</span></span></span>5</span>
+
+      <span class="op">×</span>
+      <span class="digits" id="bottom">25</span>
+
+      <span class="bar"></span>
+
+      <span class="op"></span>
+      <span class="digits"><span class="ans-front fade" id="aFront">6</span><span class="ans-back fade" id="aBack">25</span></span>
+    </div>
+  </section>
+
+  <button id="next" type="button">Next</button>
+</div>
+
+<script>
+(function () {
+  const NUMS = [25, 35, 45, 55, 65, 75, 85, 95];
+  let idx = 0;
+  let token = 0;
+
+  const $ = (id) => document.getElementById(id);
+  const parts = ["circle", "nA", "nX", "nB", "nR", "aFront", "aBack"].map($);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const on = (id) => $(id).classList.add("on");
+
+  async function run() {
+    const my = ++token;
+    const alive = () => my === token;
+    const n = NUMS[idx];
+    const t = Math.floor(n / 10);
+    const front = t * (t + 1);
+
+    $("tensDigit").textContent = t;
+    $("bottom").textContent = n;
+    $("nA").textContent = t;
+    $("nB").textContent = t + 1;
+    $("nR").textContent = "= " + front;
+    $("aFront").textContent = front;
+    parts.forEach((el) => el.classList.remove("on"));
+    void $("circle").getBoundingClientRect();
+
+    await sleep(500); if (!alive()) return;
+    on("circle");
+    await sleep(1000); if (!alive()) return;
+    on("nA"); on("nX"); on("nB");
+    await sleep(1100); if (!alive()) return;
+    on("nR");
+    await sleep(1000); if (!alive()) return;
+    on("aFront");
+    await sleep(900); if (!alive()) return;
+    on("aBack");
+  }
+
+  function next() { idx = (idx + 1) % NUMS.length; run(); }
+
+  $("next").addEventListener("click", next);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault(); // keeps a focused button from firing a second click
+      next();
+    }
+  });
+
+  try { window.focus(); } catch (_) {}
+  run();
+})();
+</script>
+</body>
+</html>
